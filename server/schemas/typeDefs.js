@@ -1,66 +1,52 @@
-const typeDefs = `
-  type Category {
-    _id: ID
-    name: String
-  }
+const { gql } = require('apollo-server-express');
 
-  type Product {
-    _id: ID
-    name: String
-    description: String
-    image: String
-    quantity: Int
-    price: Float
-    category: Category
-  }
-
-  type Order {
-    _id: ID
-    purchaseDate: String
-    products: [Product]
-  }
-
+const typeDefs = gql`
   type User {
-    _id: ID
-    firstName: String
-    lastName: String
-    email: String
-    orders: [Order]
+    id: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    role: String!
+    services: [Service]
+    reviews: [Review]
   }
 
-  type Checkout {
-    session: ID
+  type Service {
+    id: ID!
+    title: String!
+    description: String!
+    price: Float!
+    location: String!
+    worker: User!
   }
 
-  type Auth {
-    token: ID
-    user: User
+  type Job {
+    id: ID!
+    client: User!
+    service: Service!
+    status: String!
+    scheduleDate: String
   }
 
-  input ProductInput {
-    _id: ID
-    purchaseQuantity: Int
-    name: String
-    image: String
-    price: Float
-    quantity: Int
+  type Review {
+    id: ID!
+    client: User!
+    worker: User!
+    rating: Int!
+    review: String
   }
 
   type Query {
-    categories: [Category]
-    products(category: ID, name: String): [Product]
-    product(_id: ID!): Product
-    user: User
-    order(_id: ID!): Order
-    checkout(products: [ProductInput]): Checkout
+    getUsers(role: String): [User]
+    getUser(id: ID!): User
+    getServices: [Service]
   }
 
   type Mutation {
-    addUser(firstName: String!, lastName: String!, email: String!, password: String!): Auth
-    addOrder(products: [ID]!): Order
-    updateUser(firstName: String, lastName: String, email: String, password: String): User
-    updateProduct(_id: ID!, quantity: Int!): Product
-    login(email: String!, password: String!): Auth
+    createUser(firstName: String!, lastName: String!, email: String!, password: String!): User
+    createService(title: String!, description: String!, price: Float!, workerId: ID!): Service
+    createJob(clientId: ID!, serviceId: ID!, scheduleDate: String!): Job
+    createReview(clientId: ID!, workerId: ID!, rating: Int!, review: String!): Review
   }
 `;
 

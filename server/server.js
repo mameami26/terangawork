@@ -1,48 +1,40 @@
 const express = require('express');
-const { ApolloServer } = require('@apollo/server');
-const { expressMiddleware } = require('@apollo/server/express4');
-const path = require('path');
-const { authMiddleware } = require('./utils/auth');
+const { ApolloServer } = require('apollo-server-express');
+const http = require('http');
+const connectDB = require('./config/connection');
+const { typeDefs, resolvers } = require('./graphql');
+const { initSocket } = require('./services/messageService');
+const dotenv = require('dotenv');
 
-const { typeDefs, resolvers } = require('./schemas');
-const db = require('./config/connection');
+// Load environment variables from .env file
+dotenv.config();
 
-const PORT = process.env.PORT || 3001;
+// Initialize Express app
 const app = express();
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
+const server = http.createServer(app);
+
+// Middleware for parsing JSON data
+app.use(express.json());
+
+// MongoDB Connection
+connectDB();
+
+// Initialize Apollo Server for GraphQL
+const apolloServer = new ApolloServer({ typeDefs, resolvers });
+await apolloServer.start();
+apolloServer.applyMiddleware({ app });
+
+// Initialize Socket.io for real-time messaging
+initSocket(server);
+
+// Basic route for testing
+app.get('/', (req, res) => {
+  res.send('Welcome to the TérangaWork Backend API');
 });
 
-// Create a new instance of an Apollo server with the GraphQL schema
-const startApolloServer = async () => {
-  await server.start();
-
-  app.use(express.urlencoded({ extended: false }));
-  app.use(express.json());
-
-  // Serve up static assets
-  app.use('/images', express.static(path.join(__dirname, '../client/images')));
-
-  app.use('/graphql', expressMiddleware(server, {
-    context: authMiddleware
-  }));
-
-  if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../client/dist')));
-
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-    });
-  }
-
-  db.once('open', () => {
-    app.listen(PORT, () => {
-      console.log(`API server running on port ${PORT}!`);
-      console.log(`Use GraphQL at http://localhost:${PORT}/graphql`);
-    });
-  });
-};
-
-// Call the async function to start the server
-startApolloServer();
+// Start server
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`GraphQL endpoint at http://localhost:${PORT}${apolloServer.graphqlPath}`);
+});
