@@ -1,15 +1,13 @@
-import ProductList from "../components/ProductList";
-import CategoryMenu from "../components/CategoryMenu";
-import Cart from "../components/Cart";
+import React from 'react';
+import ServiceCard from '../components/ServiceCard';
 
-const Home = () => {
+function HomePage() {
   return (
-    <div className="container">
-      <CategoryMenu />
-      <ProductList />
-      <Cart />
+    <div>
+      <h1>Welcome to TérangaWork</h1>
+      <ServiceCard title="Plumbing" description="Fix your pipes" price={100} />
     </div>
   );
-};
+}
 
-export default Home;
+export default HomePage;

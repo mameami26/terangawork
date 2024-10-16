@@ -1,21 +1,16 @@
-const mongoose = require('mongoose');
-const User = require('../models/User');
-const Service = require('../models/Service');
-const Job = require('../models/Job');
-const Review = require('../models/Review');
+const models = require('../models');
+const db = require('../config/connection');
 
-const cleanDB = async () => {
+module.exports = async (modelName, collectionName) => {
   try {
-    await User.deleteMany({});
-    await Service.deleteMany({});
-    await Job.deleteMany({});
-    await Review.deleteMany({});
-    console.log('Database cleaned successfully');
-  } catch (error) {
-    console.error('Error cleaning the database:', error);
-  } finally {
-    mongoose.connection.close();
-  }
-};
+    let modelExists = await models[modelName].db.db.listCollections({
+      name: collectionName
+    }).toArray()
 
-module.exports = cleanDB;
+    if (modelExists.length) {
+      await db.dropCollection(collectionName);
+    }
+  } catch (err) {
+    throw err;
+  }
+}

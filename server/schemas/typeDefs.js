@@ -2,7 +2,7 @@ const { gql } = require('apollo-server-express');
 
 const typeDefs = gql`
   type User {
-    id: ID!
+    _id: ID!
     firstName: String!
     lastName: String!
     email: String!
@@ -12,16 +12,20 @@ const typeDefs = gql`
   }
 
   type Service {
-    id: ID!
+    _id: ID!
     title: String!
     description: String!
     price: Float!
-    location: String!
+    location: String
     worker: User!
+  }
+    type Auth {
+    token: ID
+    user: User
   }
 
   type Job {
-    id: ID!
+    _id: ID!
     client: User!
     service: Service!
     status: String!
@@ -29,7 +33,7 @@ const typeDefs = gql`
   }
 
   type Review {
-    id: ID!
+    _id: ID!
     client: User!
     worker: User!
     rating: Int!
@@ -37,16 +41,19 @@ const typeDefs = gql`
   }
 
   type Query {
-    getUsers(role: String): [User]
-    getUser(id: ID!): User
-    getServices: [Service]
+    user(id: ID!): User
+    service: [Service]
+    job(clientId: ID): [Job]
+    review: [Review]
   }
 
   type Mutation {
-    createUser(firstName: String!, lastName: String!, email: String!, password: String!): User
-    createService(title: String!, description: String!, price: Float!, workerId: ID!): Service
-    createJob(clientId: ID!, serviceId: ID!, scheduleDate: String!): Job
-    createReview(clientId: ID!, workerId: ID!, rating: Int!, review: String!): Review
+    addUser(firstName: String!, lastName: String!, email: String!, password: String!): Auth
+    addService(title: String!, description: String!, price: Float!, workerId: ID!): Service
+    addJob(clientId: ID!, serviceId: ID!, scheduleDate: String!): Job
+    addReview(clientId: ID!, workerId: ID!, rating: Int!, review: String!): Review
+    updateUser(firstName: String, lastName: String, email: String, password: String): User
+    login(email: String!, password: String!): Auth
   }
 `;
 

@@ -1,37 +1,68 @@
-const User = require('../models/User');
-const Service = require('../models/Service');
-const Job = require('../models/Job');
-const Review = require('../models/Review');
+const { User, Service, Job, Review } = require('../models');
+const { signToken, AuthenticationError } = require('../utils/auth');
 
 const resolvers = {
   Query: {
-    getUsers: async (_, { role }) => {
+    user: async (parent, { role }) => {
       const filter = role ? { role } : {};
       return await User.find(filter).populate('services reviews');
     },
-    getUser: async (_, { id }) => {
-      return await User.findById(id).populate('services reviews');
-    },
-    getServices: async () => {
+    // user: async (parent, { id }) => {
+    //   return await User.findById(id).populate('services reviews');
+    // },
+    service: async () => {
       return await Service.find().populate('worker');
+    },
+    job: async (parent, { clientId }) => {
+      const filter = clientId ? { client: clientId } : {};
+      return await Job.find(filter).populate('service client');
+    },
+    review: async () => {
+      return await Review.find().populate('client worker');
     },
   },
   Mutation: {
-    createUser: async (_, { firstName, lastName, email, password }) => {
-      const user = new User({ firstName, lastName, email, password });
-      return await user.save();
+    addUser: async (parent, args) => {
+      const user = await User.create(args);
+      const token = signToken(user);
+
+      return { token, user };
     },
-    createService: async (_, { title, description, price, workerId }) => {
+    addService: async (parent, { title, description, price, workerId }) => {
       const service = new Service({ title, description, price, worker: workerId });
       return await service.save();
     },
-    createJob: async (_, { clientId, serviceId, scheduleDate }) => {
+    addJob: async (parent, { clientId, serviceId, scheduleDate }) => {
       const job = new Job({ client: clientId, service: serviceId, scheduleDate });
       return await job.save();
     },
-    createReview: async (_, { clientId, workerId, rating, review }) => {
+    addReview: async (parent, { clientId, workerId, rating, review }) => {
       const newReview = new Review({ client: clientId, worker: workerId, rating, review });
       return await newReview.save();
+    },
+    updateUser: async (parent, args, context) => {
+      if (context.user) {
+        return await User.findByIdAndUpdate(context.user._id, args, { new: true });
+      }
+
+      throw AuthenticationError;
+    },
+    login: async (parent, { email, password }) => {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        throw new AuthenticationError('Invalid email or password');
+      }
+
+      const correctPw = await user.isCorrectPassword(password);
+
+      if (!correctPw) {
+        throw new AuthenticationError('Invalid email or password');
+      }
+
+      const token = signToken(user);
+
+      return { token, user };
     },
   }
 };

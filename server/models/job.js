@@ -8,5 +8,7 @@ const jobSchema = new Schema({
   scheduleDate: Date,
   createdAt: { type: Date, default: Date.now }
 });
+const Job = mongoose.model('Job', jobSchema);
+module.exports = Job;
 
-module.exports = mongoose.model('Job', jobSchema);
+

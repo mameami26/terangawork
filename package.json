@@ -1,6 +1,6 @@
 {
-  "name": "mern-shopping",
-  "version": "1.0.0",
+  "name": "terangawork",
+ "version": "1.0.0",
   "description": "",
   "main": "server/server.js",
   "scripts": {
@@ -17,3 +17,4 @@
     "concurrently": "^5.1.0"
   }
 }
+
